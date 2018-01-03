@@ -59,7 +59,7 @@ public class UpdateValuationLastDayApplication implements CommandLineRunner {
             // 更新比例
             if (allSize != 0) {
                 jdbcTemplate.update("update index_valuation set pe_ratio = ?, pb_ratio = ? where index_code = ? and biz_date = ?",
-                        subPeSize / allSize, subPbSize / allSize, indexCode, bizDate);
+                        subPeSize * 1.0 / allSize, subPbSize * 1.0 / allSize, indexCode, bizDate);
             }
         }
 
@@ -87,7 +87,7 @@ public class UpdateValuationLastDayApplication implements CommandLineRunner {
             // 更新比例
             if (allSize != 0) {
                 jdbcTemplate.update("update index_valuation_uqer set pe_ratio = ?, pb_ratio = ? where index_code = ? and biz_date = ?",
-                        subPeSize / allSize, subPbSize / allSize, indexCode, bizDate);
+                        subPeSize * 1.0 / allSize, subPbSize * 1.0 / allSize, indexCode, bizDate);
             }
         }
     }

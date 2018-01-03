@@ -12,6 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,12 +21,12 @@ import java.util.stream.Collectors;
  * Created by zhulx on 24/11/2017.
  */
 //@SpringBootApplication
-public class UqerLastDayApplication implements CommandLineRunner {
+public class UqerOneDayApplication implements CommandLineRunner {
 
-    private static final Logger log = LoggerFactory.getLogger(UqerLastDayApplication.class);
+    private static final Logger log = LoggerFactory.getLogger(UqerOneDayApplication.class);
 
     public static void main(String[] args) {
-        SpringApplication.run(UqerLastDayApplication.class, args);
+        SpringApplication.run(UqerOneDayApplication.class, args);
     }
 
     @Autowired
@@ -67,10 +68,12 @@ public class UqerLastDayApplication implements CommandLineRunner {
      */
     @Override
     public void run(String... strings) throws Exception {
-        // 获取最近一天的交易日
-        String lastBizDate = jdbcTemplate.queryForObject("select biz_date from uqer_stock_hs where code = '000001' order by biz_date desc limit 1", String.class);
-
-        log.info(String.format("last biz_date: %s", lastBizDate));
+        // 从这天开始重新计算
+        String bizDateStart = "2017-12-08";
+        // 获取所有交易日
+        List<String> bizDateList = jdbcTemplate.query("select biz_date from uqer_stock_hs where code = '000001' and biz_date > ? order by biz_date", new Object[]{bizDateStart},
+                (rs, rowNum) -> rs.getString("biz_date"));
+        System.out.println(bizDateList);
         List<String> excludeIndexList = Lists.newArrayList("000001", "000854", "399416", "399632", "399634", "399983", "460220",
                 "930746", "930839", "CSPSADRP", "GDAXI", "H11136", "H30251", "H30252", "H30255", "H30257", "H30359", "H30373",
                 "H30533", "H30537", "H50069", "HSCEI", "HSI", "HSML25", "NBI", "NDX", "SPGOGUP", "SPX");
@@ -80,16 +83,54 @@ public class UqerLastDayApplication implements CommandLineRunner {
         // 去掉暂时不处理的指数
         indexCodeList.removeAll(excludeIndexList);
 
-        // 遍历所有指数
         for (String indexCode : indexCodeList) {
             log.info(String.format("preparing to execute: %s", indexCode));
-            // 查询当前的成分股
-            List<IndexConstituent> constituentList = jdbcTemplate.query("select stock_code from index_constituent_current where index_code = ?",
-                    new Object[]{indexCode}, (rs, rowNum) -> new IndexConstituent(lastBizDate, rs.getString("stock_code"), 1));
-            log.info(String.format("constituent size is: %s", constituentList.size()));
-            Valuation valuation = getValuationOneDay(indexCode, lastBizDate, constituentList);
-            // 插入数据
-            jdbcTemplate.update("INSERT INTO index_valuation_uqer(index_code, biz_date, pe, pb) VALUES (?, ?, ?, ?)", new Object[]{valuation.getIndexCode(), valuation.getBizDate(), valuation.getPe(), valuation.getPb()});
+            // 获取指定日期的成分股列表
+            List<IndexConstituent> constituentList = jdbcTemplate.query("select biz_date, stock_code, status from index_constituent_history a where index_code = ? and status = 1 and a.biz_date <= ? and (select count(*) from index_constituent_history where index_code = a.index_code and stock_code = a.stock_code and biz_date <= ? and biz_date > a.biz_date and status = 0) = 0",
+                    new Object[]{indexCode, bizDateStart, bizDateStart}, (rs, rowNum) -> new IndexConstituent(rs.getString("biz_date"), rs.getString("stock_code"), rs.getInt("status")));
+            log.info("constituent size is: " + constituentList.size());
+            List<Valuation> valuationList = new ArrayList<>();
+            Valuation startValuation = getValuationOneDay(indexCode, bizDateStart, constituentList);
+            valuationList.add(startValuation);
+
+            // 获取成分记录第一天之后的数据
+            List<IndexConstituent> constituentHistoryList = jdbcTemplate.query("SELECT * from index_constituent_history where index_code = ? and biz_date > ? order by biz_date", new Object[]{indexCode, bizDateStart},
+                    (rs, rowNum) -> new IndexConstituent(rs.getString("biz_date"), rs.getString("stock_code"), rs.getInt("status")));
+            // 遍历开始日期的所有交易日
+            for (String bizDate : bizDateList) {
+                // 获取成分变更记录的下一条数据
+                if (constituentHistoryList != null && constituentHistoryList.size() > 0 && bizDate.equals(constituentHistoryList.get(0).getBizDate())) {
+                    getConstituentList(bizDate, constituentHistoryList, constituentList);
+                }
+                Valuation valuation = getValuationOneDay(indexCode, bizDate, constituentList);
+                valuationList.add(valuation);
+            }
+            List<Object[]> params = valuationList.stream()
+                    .map(valuation -> new Object[]{valuation.getPe(), valuation.getPb(), valuation.getIndexCode(), valuation.getBizDate()})
+                    .collect(Collectors.toList());
+
+            // Uses JdbcTemplate's batchUpdate operation to bulk load data
+            jdbcTemplate.batchUpdate("update index_valuation_uqer set pe = ?, pb = ? where index_code = ? and biz_date = ?", params);
+        }
+    }
+
+    private void getConstituentList(String bizDate, List<IndexConstituent> constituentHistoryList, List<IndexConstituent> constituentList) {
+        Iterator<IndexConstituent> iterator = constituentHistoryList.iterator();
+        while (iterator.hasNext()) {
+            IndexConstituent indexConstituent = iterator.next();
+            if (!bizDate.equals(indexConstituent.getBizDate())) {
+                break;
+            }
+
+            int status = indexConstituent.getStatus();
+            if (status == 1) {
+                constituentList.add(indexConstituent);
+            } else if (status == 0) {
+                constituentList.remove(indexConstituent);
+            } else {
+                log.error("index constituent is not correct, value is: " + status);
+            }
+            iterator.remove();
         }
     }
 
