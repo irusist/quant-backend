@@ -1,19 +1,168 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>指数估值图</title>
     <script src="webjars/jquery/3.1.1/jquery.min.js"></script>
     <script src="webjars/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js"></script>
+
     <link rel="stylesheet" href="webjars/bootstrap/3.3.5/css/bootstrap.min.css" />
     <meta charset="UTF-8">
-    <title>Insert title here</title>
 </head>
 <body>
-<h2>hello zhangyan</h2>
+
 <div class="container">
-    <h2>Button</h2>
-    <p>.btn 类是按钮的基本样式:</p>
-    <button type="button" class="btn-warning">基本按钮</button>
-    <button type="button" class="btn-danger">错误按钮</button>
+    <select class="md-2" id="index_selected">
+        <option selected>请选择指数</option>
+        <option value="000300">沪深300</option>
+        <option value="000905">中证500</option>
+        <option value="000852">中证1000</option>
+        <option value="000016">上证50</option>
+        <option value="000010">上证180</option>
+        <option value="399330">深圳100</option>
+        <option value="000015">上证红利</option>
+        <option value="950090">50AH优选</option>
+        <option value="930782">500低波动</option>
+        <option value="000925">基本面50</option>
+        <option value="000991">全指医药</option>
+        <option value="399812">养老产业</option>
+        <option value="000992">全指金融</option>
+        <option value="000990">全指消费</option>
+        <option value="000993">全指信息</option>
+        <option value="000922">中证红利</option>
+        <option value="000922">中证红利</option>
+        <option value="000827">中证环保</option>
+        <option value="399967">中证军工</option>
+        <option value="399989">中证医疗</option>
+        <option value="399101">中小板综</option>
+        <option value="399102">创业板综</option>
+        <option value="399006">创业板指</option>
+        <option value="399396">国证食品</option>
+        <option value="399971">中证传媒</option>
+    </select>
+    <div class="chart-holder" style="width: 80%;">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <div class="chart-holder" style="width: 80%;">
+        <canvas id="myChart2"></canvas>
+    </div>
 </div>
-</body>
-</html>
+
+<script>
+    var myChart;
+    var myChart2;
+    $("#index_selected").change(function() {
+        var index = $(this).children('option:selected').val();
+        var index_name = $(this).children('option:selected').text();
+        getValuation(index, index_name);
+    });
+
+    function getValuation(index, index_name) {
+        //Get the context of the canvas element we want to select
+        var ctx = document.getElementById("myChart").getContext("2d");
+        var ctx2 = document.getElementById("myChart2").getContext("2d");
+        $.ajax({
+            url: '/getValuation/' + index,
+            dataType: 'json',
+        }).done(function (results) {
+
+            // 将获取到的json数据分别存放到两个数组中
+            labels = results.date;
+            pe = results.pe;
+            pe_ratio = results.pe_ratio
+//            p30 = results.p30;
+
+            // 设置图表的数据
+            var tempData = {
+                labels: labels,
+                datasets: [{
+                    label: index_name + '历史估值',
+                    data: pe,
+                    pointRadius: 0,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255,99,132,1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1,
+                    pointBorderWidth: 1
+                }]
+            };
+            if(myChart) {
+                myChart.destroy();
+            }
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: tempData
+            });
+
+            // 设置图表的数据
+            var tempData2 = {
+                labels: labels,
+                datasets: [{
+                    label: index_name + '历史估值百分比',
+                    data: pe_ratio,
+                    pointRadius: 0,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255,99,132,1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1,
+                    pointBorderWidth: 1
+                },
+
+//                    {
+//                        label: index_name + ' 30%高度线',
+//                        data: p30,
+//                        pointRadius: 0,
+//                        backgroundColor: [
+//                            'rgba(255, 99, 132, 0.2)',
+//                            'rgba(54, 162, 235, 0.2)',
+//                            'rgba(255, 206, 86, 0.2)',
+//                            'rgba(75, 192, 192, 0.2)',
+//                            'rgba(153, 102, 255, 0.2)',
+//                            'rgba(255, 159, 64, 0.2)'
+//                        ],
+//                        borderColor: "yellow",
+//                        borderWidth: 1,
+//                        pointBorderWidth: 1
+//                    }
+                    ]
+            };
+            if(myChart2) {
+                myChart2.destroy();
+            }
+            myChart2 = new Chart(ctx2, {
+                type: 'line',
+                data: tempData2
+            });
+        });
+    }
+</script>

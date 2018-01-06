@@ -1,4 +1,4 @@
-package com.irusist.quant.quantbackend;
+package com.irusist.quant.quantbackend.domain;
 
 /**
  * Created by zhulx on 25/11/2017.

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @EnableAutoConfiguration
 public class SampleController {
 
-    @RequestMapping("/")
+    @RequestMapping("/hello")
     @ResponseBody
     String name() {
         return "Hello World!";

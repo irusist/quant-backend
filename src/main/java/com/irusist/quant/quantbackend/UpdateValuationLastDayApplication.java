@@ -1,11 +1,11 @@
 package com.irusist.quant.quantbackend;
 
+import com.irusist.quant.quantbackend.domain.Valuation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.List;
  * Created by zhulx on 24/11/2017.
  */
 //@SpringBootApplication
-public class UpdateValuationLastDayApplication implements CommandLineRunner {
+public class UpdateValuationLastDayApplication  implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(UpdateValuationLastDayApplication.class);
 
