@@ -2,6 +2,28 @@
 
 本项目主要用于计算指数的估值，并与历史估值对比，判断当前所处的位置, 并部署了阿里云，方便自己查看
 
+** 数据同步阿里云
+
+*** 导出全部数据
+
+#+BEGIN_SRC bash
+mysqldump -uquant -p123456 quant index_valuation_uqer  > valuation.sql
+#+END_SRC
+
+*** 导出当天数据
+
+#+BEGIN_SRC bash
+mysqldump -uquant -p123456 quant index_valuation_uqer --skip-add-drop-table --no-create-info --where="biz_date='2018-01-05'"  > valuation.sql
+#+END_SRC
+
+*** 导入阿里云数据库
+
+#+BEGIN_SRC bash
+mysqldump -hxxx -pxxx -uxxx -pxxx
+mysql> use quant
+mysql> source valuation.sql
+#+END_SRC
+
 ** 部署
 
 #+BEGIN_SRC java
