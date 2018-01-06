@@ -1,0 +1,14 @@
+** 说明
+
+本项目主要用于计算指数的估值，并与历史估值对比，判断当前所处的位置, 并部署了阿里云，方便自己查看
+
+** 部署
+
+#+BEGIN_SRC java
+mvn clean package
+java -jar target/quant-backend-0.0.1-SNAPSHOT.jar
+#+END_SRC
+
+** 估值查询
+
+http://47.100.121.74:8080/
