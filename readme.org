@@ -34,3 +34,21 @@ java -jar target/quant-backend-0.0.1-SNAPSHOT.jar
 ** 估值查询
 
 http://47.100.121.74:8080/
+
+** 估值估算
+
+根据前一天指数的点位， 估值比例， 当天的指数涨幅， 估算出当前指数大概的估值高度比例
+
+http://localhost:8080/estimate/{index}/{change}
+
+ + index 为指数代码， 如 000905
+ + change 为指数的涨幅， 为 1表示 涨了1%， -1表示跌了1%
+
+
+返回的字段：
+
+  1. current_pe： 前一天指数的pe估值
+  2. current_ratio： 前一天指数的估值高度比例
+  3. estimate_pe： 根据当天指数涨幅估算的pe估值
+  4. estimate_ratio： 根据估算的pe估值计算的估值高度
+
