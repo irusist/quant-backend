@@ -39,7 +39,7 @@ http://47.100.121.74:8080/
 
 根据前一天指数的点位， 估值比例， 当天的指数涨幅， 估算出当前指数大概的估值高度比例
 
-http://localhost:8080/estimate/{index}/{change}
+http://47.100.121.74:8080/estimate/{index}/{change}
 
  + index 为指数代码， 如 000905
  + change 为指数的涨幅， 为 1表示 涨了1%， -1表示跌了1%
