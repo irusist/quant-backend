@@ -30,9 +30,9 @@ public class EstimateService {
         Double currentPe = (Double) result.get("current_pe");
         Double estimatePe = Double.valueOf(currentPe) * (1 + change / 100);
 
-        int subCount = jdbcTemplate.queryForObject("select count(1) from index_valuation where index_code = ? and pe < ?",
+        int subCount = jdbcTemplate.queryForObject("select count(1) from index_valuation_uqer where index_code = ? and pe < ?",
                 new Object[]{indexCode, estimatePe}, int.class);
-        int allCount = jdbcTemplate.queryForObject("select count(1) from index_valuation where index_code = ?",
+        int allCount = jdbcTemplate.queryForObject("select count(1) from index_valuation_uqer where index_code = ?",
                 new Object[]{indexCode}, int.class);
 
         log.info(String.format("current pe is : %s, change is %s%%, estimate pe is: %s", currentPe, change, estimatePe));
