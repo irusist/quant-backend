@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
@@ -33,7 +34,7 @@ public class UpdateValuationOneDayApplication implements CommandLineRunner {
     @Override
     public void run(String... strings) throws Exception {
         // 从这天开始重新计算
-        String bizDateStart = "2017-12-08";
+        String bizDateStart = "2017-12-22";
         // 获取所有交易日
         List<String> bizDateList = jdbcTemplate.query("select biz_date from index_valuation where biz_date >= ? group by biz_date order by biz_date", new Object[]{bizDateStart},
                 (rs, rowNum) -> rs.getString("biz_date"));

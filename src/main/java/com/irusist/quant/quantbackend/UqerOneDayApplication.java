@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.ArrayList;
@@ -68,7 +69,7 @@ public class UqerOneDayApplication implements CommandLineRunner {
     @Override
     public void run(String... strings) throws Exception {
         // 从这天开始重新计算
-        String bizDateStart = "2017-12-08";
+        String bizDateStart = "2017-12-22";
         // 获取所有交易日
         List<String> bizDateList = jdbcTemplate.query("select biz_date from uqer_stock_hs where code = '000001' and biz_date > ? order by biz_date", new Object[]{bizDateStart},
                 (rs, rowNum) -> rs.getString("biz_date"));
@@ -79,6 +80,10 @@ public class UqerOneDayApplication implements CommandLineRunner {
         // 获取所有有基金的指数
         List<String> indexCodeList = jdbcTemplate.query("SELECT index_code from index_fund group by index_code order by index_code",
                 (rs, rowNum) -> rs.getString("index_code"));
+//        indexCodeList = Lists.newArrayList("000001", "000846", "000987", "000988", "000989", "399992", "930777", "H30124", "H30171",
+//                "399001", "399004", "399005", "399006", "399007", "399008", "399101", "399313", "399320", "399326", "399330",
+//                "399337", "399348", "399368", "399393", "399394", "399395", "399396", "399412", "399417", "399429", "399440",
+//                "399441", "399602", "399610", "399612", "399624", "399673");
         // 去掉暂时不处理的指数
         indexCodeList.removeAll(excludeIndexList);
 
